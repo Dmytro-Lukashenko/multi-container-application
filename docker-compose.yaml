@@ -1,0 +1,47 @@
+version: "3.8"
+services:
+  mongodb:
+    image: "mongo"
+    volumes: 
+      - data:/data/db
+    container_name: mongodb
+    # environment: - we don't need to use this key as we relocate all the variables to the separate file mongo.env 
+    #MONGO_INITDB_ROOT_USERNAME: max
+    #MONGO_INITDB_ROOT_PASSWORD: secret
+    #- MONGO_INITDB_ROOT_USERNAME=max
+    #- MONGO_INITDB_ROOT_PASSWORD=secret
+    env_file: 
+      - ./env/mongo.env
+  backend:
+    build: ./backend 
+    # build:
+      # context: ./backend
+      # dockerfile: dockerfile
+      # args:
+      #   some-args: 1
+    ports:
+      - "80:80"
+    volumes:
+      - logs:/app/logs
+      - ./backend:/app
+      - /app/node_modules
+    container_name: backend
+    env_file: 
+      - ./env/backend.env
+    depends_on:
+      - mongodb 
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+    container_name: frontend
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+
+volumes:
+  data:
+  logs:
